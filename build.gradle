@@ -1,0 +1,40 @@
+plugins {
+	id "java"
+	id "application"
+}
+ 
+
+ 
+group = "blue.endless";
+archivesBaseName = "JarVibeCheck";
+version = "1.0.0";
+ 
+sourceCompatibility = 1.17;
+targetCompatibility = 1.17;
+
+
+repositories {
+	mavenCentral();
+}
+
+dependencies {
+
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+}
+
+application {
+	applicationName = "JarVibeCheck";
+	
+	mainClass = "blue.endless.jarvibecheck.Main";
+}
+
+jar {
+	manifest {
+		attributes(
+			"Main-Class": "blue.endless.jarvibecheck.Main"
+		)
+	}
+}
