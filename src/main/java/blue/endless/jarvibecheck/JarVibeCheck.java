@@ -33,7 +33,7 @@ import blue.endless.jarvibecheck.impl.IntelDataInputStream;
  * 
  */
 public class JarVibeCheck {
-	public static Optional<String> process(Path path) {
+	public static Optional<String> process(Path path, boolean verbose) {
 		Map<Long, LocalFileHeader> fileHeaders = new HashMap<>();
 		
 		try (InputStream in = Files.newInputStream(path, StandardOpenOption.READ)) {
@@ -47,7 +47,12 @@ public class JarVibeCheck {
 				if (signature == LocalFileHeader.SIGNATURE) {
 					LocalFileHeader header = LocalFileHeader.read(din, signature);
 					fileHeaders.put(offset, header);
-					header.dump();
+					if (verbose) header.dump();
+					
+					if (header.compressedSize == 0 && header.uncompressedSize == 0 && header.crc32 != 0) {
+						return Optional.of("A local file header's compressed and uncompressed sizes were both zero, but the crc was set.");
+					}
+					
 					din.skip((int) header.compressedSize);
 				} else {
 					if (signature == CentralDirectoryFile.SIGNATURE) {
@@ -67,7 +72,7 @@ public class JarVibeCheck {
 				if (signature == CentralDirectoryFile.SIGNATURE) {
 					CentralDirectoryFile dir = CentralDirectoryFile.read(din, signature);
 					
-					dir.dump();
+					if (verbose) dir.dump();
 					
 					LocalFileHeader fileHeader = fileHeaders.get(dir.headerRelativeOffset);
 					if (fileHeader == null) {

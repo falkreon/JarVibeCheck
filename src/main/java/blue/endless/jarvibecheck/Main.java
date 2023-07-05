@@ -6,19 +6,33 @@ import java.util.Optional;
 
 public class Main {
 	public static void main(String... args) {
-		if (args.length == 0 || args.length > 1) {
-			System.out.println("usage: java -jar JarVibeCheck.jar <path>");
-			
+		if (args.length == 0) {
+			printUsage();
 			return;
 		}
 		
-		Path p = Path.of(args[0]);
+		Path p = null;
+		boolean verbose = false;
+		
+		for(String s : args) {
+			if (s.startsWith("--")) {
+				if (s.equals("--verbose")) verbose = true;
+			} else {
+				if (p == null) {
+					p = Path.of(s);
+				} else {
+					printUsage();
+					return;
+				}
+			}
+		}
+		
 		if (!Files.exists(p)) {
 			System.err.println("File \""+p.toString()+"\" does not exist.");
 		}
 		
 		try {
-			Optional<String> failReason = JarVibeCheck.process(p);
+			Optional<String> failReason = JarVibeCheck.process(p, verbose);
 			
 			if (!failReason.isEmpty()) {
 				System.out.println("Check FAILED: "+failReason.get());
@@ -31,5 +45,9 @@ public class Main {
 		}
 		
 		System.out.println("Check complete.");
+	}
+	
+	public static void printUsage() {
+		System.out.println("usage: java -jar JarVibeCheck.jar <path> [--verbose]");
 	}
 }

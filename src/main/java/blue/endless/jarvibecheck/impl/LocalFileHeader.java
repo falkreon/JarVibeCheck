@@ -48,9 +48,9 @@ public class LocalFileHeader {
 		System.out.println(fileName);
 		System.out.println("  Version: "+FileAttribVersion.of(version)+" (0x"+Integer.toHexString(version)+")");
 		System.out.println("  Flags: 0x"+Integer.toHexString(flags));
-		System.out.println("  Compression: "+Integer.toHexString(compression));
-		System.out.println("  LastModTime: "+DosDateTime.resolveTime(lastModTime).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)));
-		System.out.println("  LastModDate: "+DosDateTime.resolveDate(lastModDate).toString());
+		ZipFlags.dumpFlags(flags, compression);
+		System.out.println("  Compression: "+CompressionMethod.of(compression)+" (0x"+Integer.toHexString(compression)+")");
+		System.out.println("  LastModified: "+DosDateTime.prettyPrint(lastModDate, lastModTime));
 		System.out.println("  CRC32: 0x"+Long.toHexString(crc32));
 		System.out.println("  Compressed Size: "+compressedSize);
 		System.out.println("  Uncompressed Size: "+uncompressedSize);
