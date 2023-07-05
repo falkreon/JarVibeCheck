@@ -48,6 +48,12 @@ public class IntelDataInputStream {
 		return eof;
 	}
 	
+	public boolean assertEof() throws IOException {
+		if (eof) return true;
+		int value = in.read();
+		return value == -1;
+	}
+	
 	public long offset() {
 		return offset;
 	}

@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import blue.endless.jarvibecheck.impl.LocalFileHeader;
 import blue.endless.jarvibecheck.impl.CentralDirectoryFile;
+import blue.endless.jarvibecheck.impl.EndOfCentralDirectory;
 import blue.endless.jarvibecheck.impl.IntelDataInputStream;
 
 /**
@@ -67,7 +68,9 @@ public class JarVibeCheck {
 			
 			if (din.isEof()) return Optional.of("File ended too early - no central directory found.");
 			
-			//TODO: Read central directory
+			
+			long centralDirectoryOffset = din.offset() - 4;
+			
 			while (!din.isEof()) {
 				if (signature == CentralDirectoryFile.SIGNATURE) {
 					CentralDirectoryFile dir = CentralDirectoryFile.read(din, signature);
@@ -101,14 +104,30 @@ public class JarVibeCheck {
 						
 					}
 				} else {
-					System.out.println("New signature found: 0x"+Integer.toHexString(signature));
-					break;
+					if (signature == EndOfCentralDirectory.SIGNATURE) {
+						break;
+					} else {
+						return Optional.of("Found inappropriate signature (could be garbage between entries or a disallowed entry): 0x"+Integer.toHexString(signature));
+					}
 				}
 				
 				signature = (int) din.i32();
 			}
 			
-			//TODO: Read end of central directory
+			if (din.isEof()) return Optional.of("File ended too early - no end-of-central-directory found.");
+			
+			//long eocdOffset = din.offset() - 4;
+			
+			EndOfCentralDirectory endOfDirectory = EndOfCentralDirectory.read(din, signature);
+			if (verbose) endOfDirectory.dump();
+			
+			if (endOfDirectory.offsetOfCentralDirectory != centralDirectoryOffset) {
+				return Optional.of("End of Central Directory does not point to the start of the Central Directory.");
+			}
+			
+			if (!din.assertEof()) {
+				return Optional.of("End of Central Directory happened before the end of the file. This file may have been retroactively expanded or there may be hidden items.");
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace();
