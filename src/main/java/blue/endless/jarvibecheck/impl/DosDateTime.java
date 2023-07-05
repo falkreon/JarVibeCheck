@@ -2,6 +2,8 @@ package blue.endless.jarvibecheck.impl;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 public class DosDateTime {
 	public static LocalDate resolveDate(int value) {
@@ -18,5 +20,15 @@ public class DosDateTime {
 		int hour = (value >>> 11) & 0x1F;
 		
 		return LocalTime.of(hour, minute, secondDiv2 * 2);
+	}
+	
+	public static String prettyPrint(int date, int time) {
+		LocalDate localDate = resolveDate(date);
+		LocalTime localTime = resolveTime(time);
+		
+		return
+				localDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+				" at " +
+				localTime.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM));
 	}
 }

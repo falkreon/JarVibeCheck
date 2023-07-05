@@ -5,7 +5,8 @@ import java.io.InputStream;
 
 public class IntelDataInputStream {
 	private final InputStream in;
-	private boolean eof = false;;
+	private boolean eof = false;
+	private long offset = 0L;
 	
 	public IntelDataInputStream(InputStream in) {
 		this.in = in;
@@ -14,6 +15,7 @@ public class IntelDataInputStream {
 	public int i8() throws IOException {
 		int result = in.read();
 		if (result == -1) eof = true;
+		offset++;
 		return result & 0xFF;
 	}
 	
@@ -23,23 +25,30 @@ public class IntelDataInputStream {
 			(i8() << 8);
 	}
 	
-	public int i32() throws IOException {
+	public long i32() throws IOException {
 		return
-			i8() |
-			(i8() << 8) |
-			(i8() << 16) |
-			(i8() << 24);
+			(long) i8() |
+			((long) i8() << 8) |
+			((long) i8() << 16) |
+			((long) i8() << 24);
 	}
 	
 	public byte[] readBytes(int length) throws IOException {
-		return in.readNBytes(length);
+		byte[] result = in.readNBytes(length);
+		offset += result.length;
+		return result;
 	}
 	
 	public void skip(int length) throws IOException {
+		offset += length;
 		in.skip(length);
 	}
 	
 	public boolean isEof() {
 		return eof;
+	}
+	
+	public long offset() {
+		return offset;
 	}
 }

@@ -7,8 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 public class LocalFileHeader {
-	public static final int SIGNATURE = 0x504B0304;
-	public static final int INTEL_SIGNATURE = 0x04034B50;
+	public static final int SIGNATURE = 0x04034B50;
 	
 	public int sig;    //4 bytes, MUST be `0x4034b50`
 	public int version;//2 bytes, seen `0x14 00` in the wild
@@ -16,9 +15,9 @@ public class LocalFileHeader {
 	public int compression; //2 bytes, `0x08 00` is deflate, `0x00 00` is store
 	public int lastModTime; //2 bytes
 	public int lastModDate; //2 bytes
-	public int crc32;       //4 bytes obviously - typically zeroed out in combination with `00 08` flag
-	public int compressedSize; //4 bytes - typically zeroed out in combination with `00 08` flag
-	public int uncompressedSize; //4 bytes - typically zeroed out in combination with `00 08` flag
+	public long crc32;       //4 bytes obviously - typically zeroed out in combination with `00 08` flag
+	public long compressedSize; //4 bytes - typically zeroed out in combination with `00 08` flag
+	public long uncompressedSize; //4 bytes - typically zeroed out in combination with `00 08` flag
 	public int fileNameLength; //2 bytes
 	public int extraFieldLength; //2 bytes
 	public String fileName;
@@ -52,7 +51,7 @@ public class LocalFileHeader {
 		System.out.println("  Compression: "+Integer.toHexString(compression));
 		System.out.println("  LastModTime: "+DosDateTime.resolveTime(lastModTime).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)));
 		System.out.println("  LastModDate: "+DosDateTime.resolveDate(lastModDate).toString());
-		System.out.println("  CRC32: 0x"+Integer.toHexString(crc32));
+		System.out.println("  CRC32: 0x"+Long.toHexString(crc32));
 		System.out.println("  Compressed Size: "+compressedSize);
 		System.out.println("  Uncompressed Size: "+uncompressedSize);
 		System.out.println("  Extra Data Size: "+extraFieldLength);

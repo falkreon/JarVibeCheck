@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import blue.endless.jarvibecheck.impl.LocalFileHeader;
+import blue.endless.jarvibecheck.impl.CentralDirectoryFile;
 import blue.endless.jarvibecheck.impl.IntelDataInputStream;
 
 /**
@@ -28,6 +29,8 @@ import blue.endless.jarvibecheck.impl.IntelDataInputStream;
  * 
  * <p>All local file entries MUST be referenced by the central directory. Any file which is "hidden" creates bad vibes.
  * 
+ * <p>Any hint of encrypted contents is bad vibes.
+ * 
  */
 public class JarVibeCheck {
 	public static Optional<String> process(Path path) {
@@ -36,22 +39,75 @@ public class JarVibeCheck {
 		try (InputStream in = Files.newInputStream(path, StandardOpenOption.READ)) {
 			IntelDataInputStream din = new IntelDataInputStream(in);
 			
+			int signature = 0;
 			while(!din.isEof()) {
-				int signature = din.i32();
-				if (signature == LocalFileHeader.INTEL_SIGNATURE) {
+				long offset = din.offset();
+				
+				signature = (int) din.i32();
+				if (signature == LocalFileHeader.SIGNATURE) {
 					LocalFileHeader header = LocalFileHeader.read(din, signature);
-					
+					fileHeaders.put(offset, header);
 					header.dump();
-					din.skip(header.compressedSize);
+					din.skip((int) header.compressedSize);
 				} else {
+					if (signature == CentralDirectoryFile.SIGNATURE) {
+						break;
+					} else {
+						//TODO: Explain disallowed entries
+						return Optional.of("Found inappropriate signature (could be garbage between files or a disallowed entry): 0x"+Integer.toHexString(signature));
+					}
 					
-					System.out.println("Found new signature: "+Integer.toHexString(signature));
-					break;
 				}
 			}
 			
+			if (din.isEof()) return Optional.of("File ended too early - no central directory found.");
+			
+			//TODO: Read central directory
+			while (!din.isEof()) {
+				if (signature == CentralDirectoryFile.SIGNATURE) {
+					CentralDirectoryFile dir = CentralDirectoryFile.read(din, signature);
+					
+					dir.dump();
+					
+					LocalFileHeader fileHeader = fileHeaders.get(dir.headerRelativeOffset);
+					if (fileHeader == null) {
+						
+						/*
+						System.out.println("Dumping header offsets");
+						for(Map.Entry<Long, LocalFileHeader> entry : fileHeaders.entrySet()) {
+							System.out.println("  0x"+Long.toHexString(entry.getKey())+": "+entry.getValue().fileName);
+						}*/
+						
+						return Optional.of("Can't find corresponding file header for directory entry \""+dir.fileName+"\" (supposed to be 0x"+Long.toHexString(dir.headerRelativeOffset)+")");
+					} else {
+						//TODO: Match up ABSOLUTELY EVERYTHING about these files
+						
+						if (dir.compressedSize != fileHeader.compressedSize) {
+							return Optional.of("Compressed file size discrepancy between central directory and local file record.");
+						}
+						
+						if (dir.uncompressedSize != fileHeader.uncompressedSize) {
+							return Optional.of("Uncompressed file size discrepancy between central directory and local file record.");
+						}
+						
+						if (!dir.fileName.equals(fileHeader.fileName)) {
+							return Optional.of("File name (and possibly location!) is different between central directory and local file record.");
+						}
+						
+					}
+				} else {
+					System.out.println("New signature found: 0x"+Integer.toHexString(signature));
+					break;
+				}
+				
+				signature = (int) din.i32();
+			}
+			
+			//TODO: Read end of central directory
+			
 		} catch (IOException e) {
 			e.printStackTrace();
+			return Optional.of("Unknown (IOException while processing the file)");
 		}
 		
 		return Optional.empty();
