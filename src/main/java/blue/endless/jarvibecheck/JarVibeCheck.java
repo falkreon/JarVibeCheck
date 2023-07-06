@@ -103,7 +103,7 @@ public class JarVibeCheck {
 						header.uncompressedSize = dataDesc.uncompressedSize;
 						
 						if (inflated != header.compressedSize) {
-							return Optional.of("Deflate compressed data size didn't amount of bytes decompressed match in a local file header");
+							return Optional.of("Deflate compressed data size didn't match amount of bytes decompressed in a local file header");
 						}
 					} else {
 						din.skip((int) header.compressedSize);
