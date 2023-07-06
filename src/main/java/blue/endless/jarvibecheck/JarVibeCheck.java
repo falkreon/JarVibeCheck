@@ -14,6 +14,7 @@ import java.util.HashMap;
 import blue.endless.jarvibecheck.impl.LocalFileHeader;
 import blue.endless.jarvibecheck.impl.ZipFlags;
 import blue.endless.jarvibecheck.impl.CentralDirectoryFile;
+import blue.endless.jarvibecheck.impl.CompressionMethod;
 import blue.endless.jarvibecheck.impl.DataDescriptor;
 import blue.endless.jarvibecheck.impl.EndOfCentralDirectory;
 import blue.endless.jarvibecheck.impl.IntelDataInputStream;
@@ -58,7 +59,7 @@ public class JarVibeCheck {
 					}
 					
 					if ((header.flags & ZipFlags.DATA_DESCRIPTOR_FOLLOWS) == ZipFlags.DATA_DESCRIPTOR_FOLLOWS) {
-						if (header.compression != 0x08) {
+						if (header.compression != CompressionMethod.DEFLATE.value()) {
 							return Optional.of("A data descriptor was used in a local file header, but the compression method wasn't deflate");
 						}
 						
