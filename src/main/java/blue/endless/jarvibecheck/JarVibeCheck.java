@@ -6,11 +6,14 @@ import java.nio.file.StandardOpenOption;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 import java.util.Map;
 import java.util.HashMap;
 
 import blue.endless.jarvibecheck.impl.LocalFileHeader;
 import blue.endless.jarvibecheck.impl.CentralDirectoryFile;
+import blue.endless.jarvibecheck.impl.DataDescriptor;
 import blue.endless.jarvibecheck.impl.EndOfCentralDirectory;
 import blue.endless.jarvibecheck.impl.IntelDataInputStream;
 
@@ -48,13 +51,65 @@ public class JarVibeCheck {
 				if (signature == LocalFileHeader.SIGNATURE) {
 					LocalFileHeader header = LocalFileHeader.read(din, signature);
 					fileHeaders.put(offset, header);
-					if (verbose) header.dump();
 					
 					if (header.compressedSize == 0 && header.uncompressedSize == 0 && header.crc32 != 0) {
 						return Optional.of("A local file header's compressed and uncompressed sizes were both zero, but the crc was set.");
 					}
 					
-					din.skip((int) header.compressedSize);
+					if ((header.flags & 8) == 8) {
+						if (header.compression != 0x08) {
+							return Optional.of("A data descriptor was used in a local file header, but the compression method wasn't deflate");
+						}
+						
+						if (header.compressedSize != 0 || header.uncompressedSize != 0 || header.crc32 != 0) {
+							return Optional.of("A data descriptor was used in a local file header, but non-zero vaues were provided for fields that should be zero");
+						}
+						
+						// Skip to the end of compressed data
+						Inflater inflator = new Inflater(true);
+						
+						inflator.setInput(din.readBytes(1));
+						
+						byte[] outBuf = new byte[1024];
+						int inflated = 1;
+						
+						while (!inflator.finished()) {
+							if (inflator.needsDictionary()) {
+								// This shouldn't happen, but if it does, the input isn't valid anyway
+								inflator.end();
+								return Optional.of("A dictionary was needed for deflate compressed data in a local file header");
+							}
+							
+							if (inflator.needsInput()) {
+								inflator.setInput(din.readBytes(1));
+								inflated++;
+							}
+							
+							try {
+								inflator.inflate(outBuf);
+							} catch (DataFormatException e) {
+								inflator.end();
+								return Optional.of("Deflate compressed data wasn't valid in a local file header");
+							}
+						}
+						
+						inflator.end();
+						
+						// Read the data descriptor
+						DataDescriptor dataDesc = DataDescriptor.read(din);
+						
+						header.crc32 = dataDesc.crc32;
+						header.compressedSize = dataDesc.compressedSize;
+						header.uncompressedSize = dataDesc.uncompressedSize;
+						
+						if (inflated != header.compressedSize) {
+							return Optional.of("Deflate compressed data size didn't amount of bytes decompressed match in a local file header");
+						}
+					} else {
+						din.skip((int) header.compressedSize);
+					}
+					
+					if (verbose) header.dump();
 				} else {
 					if (signature == CentralDirectoryFile.SIGNATURE) {
 						break;
