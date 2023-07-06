@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import blue.endless.jarvibecheck.impl.LocalFileHeader;
+import blue.endless.jarvibecheck.impl.ZipFlags;
 import blue.endless.jarvibecheck.impl.CentralDirectoryFile;
 import blue.endless.jarvibecheck.impl.DataDescriptor;
 import blue.endless.jarvibecheck.impl.EndOfCentralDirectory;
@@ -56,7 +57,7 @@ public class JarVibeCheck {
 						return Optional.of("A local file header's compressed and uncompressed sizes were both zero, but the crc was set.");
 					}
 					
-					if ((header.flags & 8) == 8) {
+					if ((header.flags & ZipFlags.DATA_DESCRIPTOR_FOLLOWS) == ZipFlags.DATA_DESCRIPTOR_FOLLOWS) {
 						if (header.compression != 0x08) {
 							return Optional.of("A data descriptor was used in a local file header, but the compression method wasn't deflate");
 						}
