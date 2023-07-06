@@ -58,8 +58,8 @@ public class CentralDirectoryFile {
 	
 	public void dump() {
 		System.out.println("CentralDirectoryFile \""+fileName+"\"");
-		System.out.println("  VersionMadeBy: 0x"+Integer.toHexString(versionMadeBy));
-		System.out.println("  VersionNeededToExtract: 0x"+Integer.toHexString(versionNeededToExtract));
+		System.out.println("  VersionMadeBy: "+FileAttribVersionAndOS.of(versionMadeBy)+" (0x"+Integer.toHexString(versionMadeBy)+")");
+		System.out.println("  VersionNeededToExtract: "+FileAttribVersionAndOS.of(versionNeededToExtract)+" (0x"+Integer.toHexString(versionNeededToExtract)+")");
 		System.out.println("  Flags: 0x"+Integer.toHexString(flags));
 		System.out.println("  Compression: 0x"+Integer.toHexString(compression));
 		System.out.println("  Last Modified: "+DosDateTime.prettyPrint(lastModFileDate, lastModFileTime));
