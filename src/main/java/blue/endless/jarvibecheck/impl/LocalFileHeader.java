@@ -46,7 +46,7 @@ public class LocalFileHeader {
 	
 	public void dump() {
 		System.out.println(fileName);
-		System.out.println("  Version: "+FileAttribVersion.of(version)+" (0x"+Integer.toHexString(version)+")");
+		System.out.println("  Version: "+FileAttribVersionAndOS.of(version)+" (0x"+Integer.toHexString(version)+")");
 		System.out.println("  Flags: 0x"+Integer.toHexString(flags));
 		ZipFlags.dumpFlags(flags, compression);
 		System.out.println("  Compression: "+CompressionMethod.of(compression)+" (0x"+Integer.toHexString(compression)+")");
