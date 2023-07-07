@@ -6,11 +6,16 @@ plugins {
 
  
 group = "blue.endless";
-archivesBaseName = "JarVibeCheck";
 version = "1.0.0";
- 
-sourceCompatibility = 1.17;
-targetCompatibility = 1.17;
+
+base {
+	archivesName = "JarVibeCheck";
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
 
 
 repositories {
