@@ -63,7 +63,8 @@ public class JarVibeCheck {
 							return Optional.of("A data descriptor was used in a local file header, but the compression method wasn't deflate");
 						}
 						
-						if (header.compressedSize != 0 || header.uncompressedSize != 0 || header.crc32 != 0) {
+						// The uncompressed size should be checked here, but macOS uses non-zero values for it
+						if (header.compressedSize != 0 || header.crc32 != 0) {
 							return Optional.of("A data descriptor was used in a local file header, but non-zero vaues were provided for fields that should be zero");
 						}
 						
@@ -99,6 +100,11 @@ public class JarVibeCheck {
 						
 						// Read the data descriptor
 						DataDescriptor dataDesc = DataDescriptor.read(din);
+						
+						// Check if the previous non-zero value is the same as the read value
+						if (header.uncompressedSize != 0 && header.uncompressedSize != dataDesc.uncompressedSize) {
+							return Optional.of("A data descriptor was used in a local file header, but the previous non-zero value of the uncompressed size doesn't match the value read from the data descriptor");
+						}
 						
 						header.crc32 = dataDesc.crc32;
 						header.compressedSize = dataDesc.compressedSize;
