@@ -2,9 +2,12 @@ plugins {
 	id "java"
 	id "application"
 }
- 
 
- 
+tasks.withType(AbstractArchiveTask).configureEach {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
+}
+
 group = "blue.endless";
 version = "1.0.0";
 
