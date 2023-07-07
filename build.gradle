@@ -15,16 +15,13 @@ base {
 	archivesName = "JarVibeCheck";
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
-}
-
 final def compiler = javaToolchains.compilerFor {
 	languageVersion = JavaLanguageVersion.of(17)
 }
 
 java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 	toolchain {
 		compiler
 	}
