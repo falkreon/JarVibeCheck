@@ -1,13 +1,12 @@
 package blue.endless.jarvibecheck.impl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 public class LocalFileHeader {
 	public static final int SIGNATURE = 0x04034B50;
+	
+	public long offset;
 	
 	public int sig;    //4 bytes, MUST be `0x4034b50`
 	public int version;//2 bytes, seen `0x14 00` in the wild
@@ -25,6 +24,8 @@ public class LocalFileHeader {
 	
 	public static LocalFileHeader read(IntelDataInputStream in, int sig) throws IOException {
 		LocalFileHeader result = new LocalFileHeader();
+		
+		result.offset = in.offset() - 4;
 		
 		result.sig = sig;
 		result.version = in.i16();
@@ -45,7 +46,7 @@ public class LocalFileHeader {
 	}
 	
 	public void dump() {
-		System.out.println(fileName);
+		System.out.println(hexLpad(offset)+"  LocalFileHeader");
 		System.out.println("  Version: "+FileAttribVersionAndOS.of(version)+" (0x"+Integer.toHexString(version)+")");
 		System.out.println("  Flags: 0x"+Integer.toHexString(flags));
 		ZipFlags.dumpFlags(flags, compression);
@@ -55,5 +56,15 @@ public class LocalFileHeader {
 		System.out.println("  Compressed Size: "+compressedSize);
 		System.out.println("  Uncompressed Size: "+uncompressedSize);
 		System.out.println("  Extra Data Size: "+extraFieldLength);
+		System.out.println("  FileName: \""+fileName+"\"");
+	}
+	
+	private String hexLpad(long value) {
+		String result = Long.toHexString(value);
+		while(result.length() < 4) {
+			result = "0"+result;
+		}
+		
+		return result;
 	}
 }

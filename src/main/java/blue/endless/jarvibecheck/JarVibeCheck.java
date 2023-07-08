@@ -3,6 +3,7 @@ package blue.endless.jarvibecheck;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public class JarVibeCheck {
 	public static Optional<String> process(Path path, boolean verbose) {
 		Map<Long, LocalFileHeader> fileHeaders = new HashMap<>();
 		
-		try (InputStream in = Files.newInputStream(path, StandardOpenOption.READ)) {
+		try (InputStream in = new BufferedInputStream(Files.newInputStream(path, StandardOpenOption.READ))) {
 			IntelDataInputStream din = new IntelDataInputStream(in);
 			
 			int signature = 0;

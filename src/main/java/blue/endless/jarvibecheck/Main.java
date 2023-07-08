@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public class Main {
 	public static void main(String... args) {
+		long startTime = System.nanoTime();
+		
 		if (args.length == 0) {
 			printUsage();
 			return;
@@ -44,7 +46,8 @@ public class Main {
 			System.exit(1);
 		}
 		
-		System.out.println("Check complete.");
+		long elapsed = System.nanoTime() - startTime;
+		System.out.println("Check complete. (" + (elapsed / 1_000_000L) + " msec)");
 	}
 	
 	public static void printUsage() {
