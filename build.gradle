@@ -2,16 +2,30 @@ plugins {
 	id "java"
 	id "application"
 }
- 
 
- 
+tasks.withType(AbstractArchiveTask).configureEach {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
+}
+
 group = "blue.endless";
-archivesBaseName = "JarVibeCheck";
 version = "1.0.0";
- 
-sourceCompatibility = 1.17;
-targetCompatibility = 1.17;
 
+base {
+	archivesName = "JarVibeCheck";
+}
+
+final def compiler = javaToolchains.compilerFor {
+	languageVersion = JavaLanguageVersion.of(17)
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+	toolchain {
+		compiler
+	}
+}
 
 repositories {
 	mavenCentral();
@@ -22,6 +36,9 @@ dependencies {
 }
 
 tasks.withType(JavaCompile) {
+	javaCompiler = compiler
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 	options.encoding = "UTF-8"
 }
 
